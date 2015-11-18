@@ -1,0 +1,199 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+	
+		<!-- JavaScript Inputs. -->
+		<script src="js/three.min.js"></script> <!-- three.js  rendering -->
+		<script src="js/KeyboardState.js"></script> <!-- three.js  rendering -->
+		
+		<script language="javascript" type="text/javascript" src="src/Geometry_Manager.js"></script>
+		<script language="javascript" type="text/javascript" src="src/World.js"></script>
+		
+	
+		<script>
+		
+			Math.degrees = function(rad)
+			{
+				return rad*(180/Math.PI);
+			}
+ 
+			Math.radians = function(deg)
+			{
+				return deg * (Math.PI/180);
+			}
+		
+		
+			var scene  = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			camera.position.z = 10;//5;
+			camera.position.y = -7;
+			camera.lookAt(new THREE.Vector3(0, 5, 0));
+			
+			
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			
+			var Geometries = new Geometry_Manager();
+						
+			//var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			
+			var mat_terrain = 
+				new THREE.MeshLambertMaterial(
+				{
+					color: 0xFF0000
+				});
+				
+			mat_terrain.vertexColors = THREE.FaceColors;
+			
+			//*/
+			var terrain_mesh = new THREE.Mesh( Geometries.geometry, mat_terrain );
+			scene.add( terrain_mesh );
+			
+			var geometry = new THREE.SphereGeometry( 1, 32, 32 );
+			var mat_player = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
+			var player_sphere = new THREE.Mesh( geometry, mat_player);
+			scene.add( player_sphere );
+			
+			
+			// White directional light at half intensity shining from the top.
+
+			// Lights
+
+			var ambient = new THREE.AmbientLight( 0x101010 );
+			scene.add( ambient );
+			
+
+			// create a point light
+			var pointLight =
+			  new THREE.PointLight(0xFFFFFF);
+
+			// set its position
+			pointLight.position.x = 0;
+			pointLight.position.y = 0;
+			pointLight.position.z = 10;
+
+			// add to the scene
+			scene.add(pointLight);
+			
+
+			
+			var world = new World();
+
+			// Keeps track of Keyboard input.
+			var keyboard = new KeyboardState();
+			
+			var player_x = 0;
+			var player_y = 0;
+			
+			var camera_x = 0;
+			var camera_y = 0;
+			
+			var camera_looseness = 20;
+			
+			/* Displaying Text. */
+			var text2 = document.createElement('div');
+			text2.style.position = 'absolute';
+			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+			text2.style.width = window.innerWidth/4;
+			text2.style.height = 40;
+			text2.style.backgroundColor = "white";
+			text2.innerHTML = "";
+			text2.style.top = window.innerHeight - 40  + 'px';
+			text2.style.left = 0 + 'px';
+			document.body.appendChild(text2);
+			
+			
+			var render = function () {
+				requestAnimationFrame( render );
+				
+				keyboard.update();
+				world.update();
+				
+				var V = Geometries.geometry.vertices;
+				var len = V.length;
+				for(var i = 0; i < len; i++)
+				{
+					var vec = V[i];
+					
+										
+					
+					V[i].x  = V[i].original_x;
+					V[i].y  = V[i].original_y;
+					
+					var x_in = V[i].x + player_x;
+					var y_in = V[i].y - player_y;
+					V[i].z  = world.height(x_in, y_in);
+					
+					var offset = world.offset(x_in, y_in);
+					V[i].x += offset.x;
+					V[i].y += offset.y;
+					V[i].z += offset.z;
+									
+				}
+				
+				var vec = V[len/2 + 160*4 + 80];
+				
+				player_sphere.position.x = vec.x;
+				player_sphere.position.y = vec.y;
+				player_sphere.position.z = vec.z;
+				
+				Geometries.geometry.computeFaceNormals();
+				Geometries.geometry.computeVertexNormals();
+				
+				/*
+				player_sphere.position.z = 1 + world.height(player_x, player_y);
+								
+				var p_offset = world.offset(player_x, player_y);
+				player_sphere.position.x = p_offset.x;
+				player_sphere.position.y = p_offset.y;
+				player_sphere.position.z += p_offset.z;
+				*/
+				
+				vec = world.tangent(player_x, player_y);
+				
+				// Add the tangent vector to the player sphere.
+				//player_sphere.position = player_sphere.position.add(vec);
+				
+				camera_x = (player_x - 10*vec.x + camera_looseness*camera_x) / (camera_looseness + 1);
+				camera_y = (player_y - 10*vec.y + camera_looseness*camera_y) / (camera_looseness + 1);
+				
+				var target_z = player_sphere.position.z + 5 + vec.z*5;
+				camera.position.z = (target_z + camera_looseness*camera.position.z)/(camera_looseness + 1.0);
+								
+				camera.position.x = camera_x - player_x;
+				camera.position.y = -(camera_y - player_y);
+							
+				camera.lookAt(new THREE.Vector3(player_sphere.position.x, player_sphere.position.y, player_sphere.position.z));
+				
+				
+				//player_sphere
+
+				//console.log(Math.cos(time));
+				//terrain_mesh.rotation.z +=.01;
+
+				// Changes to Vertex positions.
+				Geometries.geometry.verticesNeedUpdate = true;
+
+				// Changes to Vertex normals.
+				Geometries.geometry.normalsNeedUpdate = true;
+
+				Geometries.geometry.colosNeedUpdate = true;
+
+
+
+				renderer.render(scene, camera);
+
+			};
+
+			render();
+		</script>
+	</body>
+</html>
