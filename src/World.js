@@ -25,6 +25,9 @@
 	
 	this.state = this.SEARCH;
 	
+	// The Angle of current movement.
+	this.theta = 0;
+	
 	
  }
  
@@ -152,6 +155,13 @@ World.prototype =
 		return new THREE.Vector3(0, 0, 0);
 	},
 	
+	forward_direction()
+	{
+		return new THREE.Vector3(Math.cos(this.theta),
+								 Math.sin(this.theta),
+								 0);
+	},
+	
 	update()
 	{
 		this.time++;
@@ -159,17 +169,36 @@ World.prototype =
 		
 		if ( keyboard.pressed("left") || keyboard.pressed("A") )
 		{
-			player_x -= this.moveScale;
+			//player_x -= this.moveScale;
+			this.theta += .1;
 		}
 		
-		if ( keyboard.pressed("right") || keyboard.pressed("D") ) 
-			player_x += this.moveScale;
+		if ( keyboard.pressed("right") || keyboard.pressed("D") )
+		{
+			//player_x += this.moveScale;
+			this.theta -= .1;
+		}
 		
 		if ( keyboard.pressed("down") || keyboard.pressed("S") )
-			player_y += this.moveScale;
+		{
+			//player_y += this.moveScale;
+			
+			var dir = this.forward_direction();
+			
+			player_x -= this.moveScale*dir.x;
+			player_y -= this.moveScale*dir.y;
+			//this.theta + .01;
+		}
 		
 		if ( keyboard.pressed("up") || keyboard.pressed("W") )
-			player_y -= this.moveScale;
+		{
+			//player_y -= this.moveScale;
+			
+			var dir = this.forward_direction();
+			
+			player_x += this.moveScale*dir.x;
+			player_y += this.moveScale*dir.y;
+		}
 		
 		if (keyboard.down("Q"))
 		{
@@ -193,7 +222,7 @@ World.prototype =
 			text2.innerHTML = "Stress";
 			this.moveScale = 1.0;
 			camera_looseness = 9;
-			camera.position.z = 10;
+			//camera.position.z = 10;
 		}
 		
 		if(this.state == this.CURIOSITY)
@@ -205,7 +234,7 @@ World.prototype =
 			text2.innerHTML = "Curiosity";
 			this.moveScale = .2;
 			camera_looseness = 30;
-			camera.position.z = 15;
+			//camera.position.z = 15;
 		}
 		
 		if(this.state == this.ZONE_PLATE)
@@ -217,6 +246,7 @@ World.prototype =
 			this.moveScale = 1.0;
 			camera_looseness = 30;
 			camera.position.z = 30;
+			use_tangent_camera = false;
 		}
 		
 		if(this.state == this.HAPPINESS)
@@ -228,6 +258,7 @@ World.prototype =
 			this.moveScale = 1.0;
 			camera_looseness = 30;
 			camera.position.z = 15;
+			use_tangent_camera = false;
 		}
 		
 		if(this.state == this.SEARCH)
@@ -238,8 +269,10 @@ World.prototype =
 			
 			text2.innerHTML = "Searching.";
 			this.moveScale = .2;
-			camera_looseness = 20;
+			camera_looseness = 30;
 			//camera.position.z = 20;
+			
+			use_tangent_camera = true;
 		}
 
 		

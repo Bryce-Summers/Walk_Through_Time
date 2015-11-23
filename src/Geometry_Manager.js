@@ -17,7 +17,7 @@ Geometry_Manager.prototype =
 	{
 		this.geometry = new THREE.Geometry();
 		this.geometry.dynamic = true;
-
+				
 		var r_num = 80*2;
 		var c_num = 80*2;
 		var x_start = -20*2;

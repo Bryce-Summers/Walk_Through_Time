@@ -1,0 +1,11 @@
+Try to have a purpose of interesting destinations.
+
+Add a Sky Box and an interesting visual presentation.
+
+Fix the camera and sphere display issues.
+
+Maybe incorporate mazes.
+
+Light trail behind the ball.
+
+Techno Music.
