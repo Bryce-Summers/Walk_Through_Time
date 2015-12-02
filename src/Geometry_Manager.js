@@ -23,12 +23,22 @@ Geometry_Manager.prototype =
 		var x_start = -20*2;
 		var y_start = -20*2;
 		
+				
 		var scale = 1.0/2.0;
 		
 		var x_size = 1*scale;
 		var y_size = .8660254*scale;
 
+		var x_end = x_start + c_num*x_size;
+		var y_end = y_start + r_num*y_size;
 		
+		var x_diff = x_end - x_start;
+		var y_diff = y_end - y_start;
+						
+		
+		// A temporary array to store texture values.
+		var tex_coords = [];
+
 		for(var r = 0; r < r_num; r++)
 		for(var c = 0; c < c_num; c++)
 		{
@@ -39,16 +49,25 @@ Geometry_Manager.prototype =
 				x += x_size/2;
 			}
 			
-			// Create a vector with hidden metadata.
-			var vec = new THREE.Vector3(x, y_start + y_size*r, 0);
+			var y = y_start + y_size*r;
+			
+			// Create the position vectors (with hidden metadata).
+			var vec = new THREE.Vector3(x, y, 0);
 			vec.original_x = vec.x;
 			vec.original_y = vec.y;
-			
+					
 			this.geometry.vertices.push(vec);
 			
-			this.geometry.colors.push( new THREE.Color( 0x00aaff ) );			
+			tex_coords.push(new THREE.Vector2((x - x_start)/x_diff, (y - y_start)/y_diff));
+			
+			// 
 		}
+		
+		// Elliminate the uv array.
+		this.geometry.faceVertexUvs = [];
+		this.geometry.faceVertexUvs.push([]);// Push one array on.
 
+		// Link faces to positions and uv coordinates.
 		for(var r = 0; r < r_num - 1; r++)
 		for(var c = 0; c < c_num - 1; c++)
 		{
@@ -69,18 +88,33 @@ Geometry_Manager.prototype =
 			face.vertexColors = face.color;
 			this.geometry.faces.push(face);
 			
+			// 2D vector UV positions have been precomputed.
+			var v1 = tex_coords[index1];
+			var v2 = tex_coords[index2];
+			var v3 = tex_coords[index3];
+			this.geometry.faceVertexUvs[0].push([v1, v2, v3]);
+						
+			
 			// Add the opposite facing equilateral triangles.
 			if(c > 0)
 			{
 				face = new THREE.Face3( index1, index3, index4 );
 				face.color = new THREE.Color( 0xafafaf );// Down triangles reflectance.
-				//face.color = new THREE.Color( 0xffffff );
+				face.color = new THREE.Color( 0xffffff );
 				face.vertexColors = face.color;
 				this.geometry.faces.push(face);
+				
+				// 2D vector UV positions have been precomputed.
+				var v1 = tex_coords[index1];
+				var v2 = tex_coords[index3];
+				var v3 = tex_coords[index4];
+				this.geometry.faceVertexUvs[0].push([v1, v2, v3]);
 			}
 			
 		}
 
+		this.geometry.uvsNeedUpdate = true;
+		
 		this.geometry.computeBoundingSphere();
 
 		//this.geometry = new THREE.SphereGeometry(50, 16, 16);

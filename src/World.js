@@ -17,13 +17,20 @@
 	this.ZONE_PLATE = 2;
 	this.HAPPINESS = 3;
 	this.SEARCH = 4;
+	this.MORPH = 5;
+	this.SPHERE = 6;
+	this.KLEIN_BOTTLE = 7;
 	
 	this.state = this.CURIOSITY;
 	this.state = this.ZONE_PLATE;
 	this.state = this.STRESS;
 	this.state = this.HAPPINESS;
-	
 	this.state = this.SEARCH;
+	this.state = this.MORPH;
+	
+	this.state = this.SPHERE;
+	
+	this.state = this.KLEIN_BOTTLE;
 	
 	// The Angle of current movement.
 	this.theta = 0;
@@ -91,10 +98,18 @@ World.prototype =
 		{
 			
 			return -15 + 20*Math.sin(Math.radians(x*5))*Math.sin(Math.radians(y*5));
-			
-			//return Math.sin(Math.radians(player_x*20 + player_y*5) * Math.sin(Math.radians(y*10))*Math.cos(Math.radians(x*3)));
 		}
 		
+		if(this.state == this.MORPH)
+		{
+			return Math.sin(Math.radians(player_x*20 + player_y*5) * Math.sin(Math.radians(y*10))*Math.cos(Math.radians(x*3)));
+		}
+		
+		if(this.state == this.SPHERE || this.state == this.KLEIN_BOTTLE)
+		{
+			// All work done in offset for a pure vector valued curve.
+			return 0;
+		}
 		
 		
 		return 0;
@@ -105,7 +120,7 @@ World.prototype =
 		var pos_z = this.height(x,y);
 		var offset = this.offset(x, y);
 		
-		return new THREE.Vector3(x + offset.x, y + offset.y, pos_z);
+		return new THREE.Vector3(x + offset.x, y + offset.y, pos_z + offset.z);
 	},
 	
 	tangent(x, y)
@@ -151,7 +166,39 @@ World.prototype =
 			return new THREE.Vector3(x_off, y_off, z_off);
 		}
 		
+		if(this.state == this.SPHERE)
+		{
+			
+			var grid_x = x - player_x;
+			var grid_y = y - player_y;
+			
+			var x_off = 20*Math.cos(Math.radians(x*2)) + 5*Math.sin(Math.radians(y*8));
+			var y_off = 10*Math.sin(Math.radians(y*5)) + 5*Math.cos(Math.radians(x*8));
+			var z_off = 20*Math.sin(Math.radians(x*2)) + 10*Math.cos(Math.radians(y*5));
+			
+			// use x + player_x to negate the reconversion in the geometry usage.
+			return new THREE.Vector3(-x + player_x + x_off, -y + player_y + y_off, z_off);
+		}
 		
+		if(this.state == this.KLEIN_BOTTLE)
+		{			
+			var grid_x = x - player_x;
+			var grid_y = y - player_y;
+			
+			// Convert to radians.
+			var u = Math.radians(x*2);
+			var v = Math.radians(y*2);
+			var sqrt_2 = Math.sqrt(2);
+			
+			// Paremetric description of a klein bottle.
+			var x_off = 20*(Math.cos(u)*(Math.cos(u/2)*(sqrt_2+Math.cos(v))+(Math.sin(u/2)*Math.sin(v)*Math.cos(v))));
+			var y_off = 20*(Math.sin(u)*(Math.cos(u/2)*(sqrt_2+Math.cos(v))+(Math.sin(u/2)*Math.sin(v)*Math.cos(v))));
+			var z_off = 20*(-1*Math.sin(u/2)*(sqrt_2 + Math.cos(v)) + Math.cos(u/2)*Math.sin(v)*Math.cos(v));
+
+			// use x + player_x to negate the reconversion in the geometry usage.
+			return new THREE.Vector3(-x + player_x + x_off, -y + player_y + y_off, z_off);
+		}
+
 		return new THREE.Vector3(0, 0, 0);
 	},
 	
@@ -222,7 +269,8 @@ World.prototype =
 			text2.innerHTML = "Stress";
 			this.moveScale = 1.0;
 			camera_looseness = 9;
-			//camera.position.z = 10;
+			camera.position.z = 10;
+			use_tangent_camera = false;
 		}
 		
 		if(this.state == this.CURIOSITY)
@@ -234,7 +282,8 @@ World.prototype =
 			text2.innerHTML = "Curiosity";
 			this.moveScale = .2;
 			camera_looseness = 30;
-			//camera.position.z = 15;
+			camera.position.z = 10;
+			use_tangent_camera = false;
 		}
 		
 		if(this.state == this.ZONE_PLATE)
@@ -245,7 +294,7 @@ World.prototype =
 			text2.innerHTML = "Zone Plate";
 			this.moveScale = 1.0;
 			camera_looseness = 30;
-			camera.position.z = 30;
+			camera.position.z = 20;
 			use_tangent_camera = false;
 		}
 		
@@ -274,8 +323,50 @@ World.prototype =
 			
 			use_tangent_camera = true;
 		}
-
 		
+		if(this.state == this.MORPH)
+		{
+			mat_player.color  = new THREE.Color( 0xFFFF00 );
+			mat_terrain.color = new THREE.Color( 0x0F0FF0 );
+			//mat_terrain.color = new THREE.Color( 0xFFFFFF );
+			
+			text2.innerHTML = "MORPH";
+			this.moveScale = .2;
+			camera_looseness = 90;
+			//camera.position.z = 20;
+			
+			use_tangent_camera = true;
+		}
+		
+		if(this.state == this.SPHERE)
+		{
+			mat_player.color  = new THREE.Color( 0xFFFF00 );
+			mat_terrain.color = new THREE.Color( 0xFFFFFF );
+						
+			text2.innerHTML = "Spherical";
+			this.moveScale = .2;
+			camera_looseness = 30;
+			//camera.position.z = 20;
+			
+			use_tangent_camera = true;
+			
+			// Only show front faces.
+			mat_terrain.side = THREE.FrontSide;
+			
+		}
+		
+		if(this.state == this.KLEIN_BOTTLE)
+		{
+			
+			text2.innerHTML = "Klein Bottle.";
+			this.moveScale = 1;
+			camera_looseness = 10;
+			use_tangent_camera = true;
+			
+			mat_terrain.side = THREE.DoubleSide;
+		}
+
+
 		/*
 		if ( keyboard.pressed("D") )
 			mesh.translateX(  moveDistance );
@@ -293,8 +384,12 @@ World.prototype =
 	reset_scene()
 	{
 		this.time = 0;
-		player_x = 0;
-		player_y = 0;
+		
+		var radius = 1000;
+		var angle = Math.random()*2*Math.PI;
+		
+		player_x = radius*Math.cos(angle);
+		player_y = radius*Math.sin(angle);
 		
 		console.log("help!");
 	}
