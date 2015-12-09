@@ -18,10 +18,10 @@ Geometry_Manager.prototype =
 		this.geometry = new THREE.Geometry();
 		this.geometry.dynamic = true;
 				
-		var r_num = 80*2;
-		var c_num = 80*2;
-		var x_start = -20*2;
-		var y_start = -20*2;
+		var r_num =    80*2;
+		var c_num =    80*2;
+		var x_start = -c_num/4;
+		var y_start = -r_num/4;
 		
 				
 		var scale = 1.0/2.0;
@@ -71,6 +71,17 @@ Geometry_Manager.prototype =
 		for(var r = 0; r < r_num - 1; r++)
 		for(var c = 0; c < c_num - 1; c++)
 		{
+			//       1 ----- 2
+			//      / \     /
+			//     /   \   /
+			//    /     \ /
+			//   4 ----- 3
+			//    \     /
+			//     \   /
+			//      \ /
+			//       4'
+			
+			
 			var index1 = r*r_num + c;
 			var index2 = r*r_num + c + 1;
 			var index3 = (r + 1)*r_num + c;
@@ -81,36 +92,35 @@ Geometry_Manager.prototype =
 				index3 += 1;
 			}
 			
+			// Chooose 4 normally or 4' if we are on a boundary.
+			var index4 = (c > 0) ? (index3 - 1) : (index3 + r_num);
 			var index4 = index3 - 1;
 
-			var face = new THREE.Face3( index1, index2, index3 );
-			face.color = new THREE.Color( 0xffffff );// Up triangles reflectance.
-			face.vertexColors = face.color;
-			this.geometry.faces.push(face);
-			
-			// 2D vector UV positions have been precomputed.
-			var v1 = tex_coords[index1];
-			var v2 = tex_coords[index2];
-			var v3 = tex_coords[index3];
-			this.geometry.faceVertexUvs[0].push([v1, v2, v3]);
+			// Add the first set of triangles.
+			this.add_triangle(tex_coords, index1, index2, index3);
 						
-			
-			// Add the opposite facing equilateral triangles.
-			if(c > 0)
+			// Add the backward facing set of triangles.
+			if(c > 0 || r%2 == 0)
 			{
-				face = new THREE.Face3( index1, index3, index4 );
-				face.color = new THREE.Color( 0xafafaf );// Down triangles reflectance.
-				face.color = new THREE.Color( 0xffffff );
-				face.vertexColors = face.color;
-				this.geometry.faces.push(face);
-				
-				// 2D vector UV positions have been precomputed.
-				var v1 = tex_coords[index1];
-				var v2 = tex_coords[index3];
-				var v3 = tex_coords[index4];
-				this.geometry.faceVertexUvs[0].push([v1, v2, v3]);
+				// Add the opposite facing equilateral triangles.
+				this.add_triangle(tex_coords, index1, index3, index4);
 			}
 			
+			// Add the left column edge triangles.
+			if(c == 0 && r%2 != 0)
+			{
+				this.add_triangle(tex_coords, index1, index3, index3 + r_num);
+			}
+			
+			if(r%2 != 0 && c == c_num - 2)
+			{
+				this.add_triangle(tex_coords, index1 + 1, index3 + 1, index4 + 1);
+				
+				// The right rolumn edge triangles.
+				if(r > 0)
+				this.add_triangle(tex_coords, index3 + 1, index1 + 1, index1 - r_num + 1);
+			}
+				
 		}
 
 		this.geometry.uvsNeedUpdate = true;
@@ -130,5 +140,22 @@ Geometry_Manager.prototype =
 		this.geometry.colorsNeedUpdate = true;
 		
 		return this.geometry;
+	},
+	
+	// Adds a triangle to the geometry at the given position indices.
+	add_triangle(tex_coords, index1, index2, index3)
+	{
+		var face = new THREE.Face3( index1, index2, index3 );
+		face.color = new THREE.Color( 0xffffff );// Up triangles reflectance.
+		face.vertexColors = face.color;
+		this.geometry.faces.push(face);
+
+		// 2D vector UV positions have been precomputed.
+		var v1 = tex_coords[index1];
+		var v2 = tex_coords[index2];
+		var v3 = tex_coords[index3];
+		this.geometry.faceVertexUvs[0].push([v1, v2, v3]);
 	}
+	
+	
 }

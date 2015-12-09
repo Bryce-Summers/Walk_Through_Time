@@ -269,7 +269,7 @@ World.prototype =
 			text2.innerHTML = "Stress";
 			this.moveScale = 1.0;
 			camera_looseness = 9;
-			camera.position.z = 10;
+			camera.position.z = 20;
 			use_tangent_camera = false;
 		}
 		
@@ -282,7 +282,7 @@ World.prototype =
 			text2.innerHTML = "Curiosity";
 			this.moveScale = .2;
 			camera_looseness = 30;
-			camera.position.z = 10;
+			camera.position.z = 20;
 			use_tangent_camera = false;
 		}
 		
@@ -305,7 +305,7 @@ World.prototype =
 			
 			text2.innerHTML = "Happiness";
 			this.moveScale = 1.0;
-			camera_looseness = 30;
+			camera_looseness = 60;
 			camera.position.z = 15;
 			use_tangent_camera = false;
 		}
@@ -332,10 +332,10 @@ World.prototype =
 			
 			text2.innerHTML = "MORPH";
 			this.moveScale = .2;
-			camera_looseness = 90;
-			//camera.position.z = 20;
+			camera_looseness = 30;
+			camera.position.z = 20;
 			
-			use_tangent_camera = true;
+			use_tangent_camera = false;
 		}
 		
 		if(this.state == this.SPHERE)
@@ -358,7 +358,7 @@ World.prototype =
 		if(this.state == this.KLEIN_BOTTLE)
 		{
 			
-			text2.innerHTML = "Klein Bottle.";
+			text2.innerHTML = "The one-sided argument.";
 			this.moveScale = 1;
 			camera_looseness = 10;
 			use_tangent_camera = true;

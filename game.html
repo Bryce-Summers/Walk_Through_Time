@@ -43,13 +43,23 @@
 			
 			var Geometries = new Geometry_Manager();
 
-
-						// Sky Box code.
-			var url	= "images/blueStars.png";
 			
-			var urls = [url, url,
-						url, url,
-						url, url];
+			// Sky Box code.
+			var url_right  = "images/skybox/skybox_right1.png";
+			var url_left   = "images/skybox/skybox_left2.png";
+			var url_top    = "images/skybox/skybox_top3.png";
+			var url_bottom = "images/skybox/skybox_bottom4.png";
+			var url_front  = "images/skybox/skybox_front5.png";
+			var url_back   = "images/skybox/skybox_back6.png";		
+			
+			
+			// The array of 6 component skybox images.			
+			var urls = [url_right,
+						url_left,
+						url_top,
+						url_bottom,
+						url_front,
+						url_back];
 
 			
 			var cubemap = THREE.ImageUtils.loadTextureCube(urls); // load textures
@@ -73,13 +83,18 @@
 			  skyBoxMaterial
 			);
 
-			//scene.add(skybox);
+			scene.add(skybox);
 
 			// -- End of skybox code.
 
 			//var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 
-			var texture_terrain = THREE.ImageUtils.loadTexture( "textures/texture.png" );
+			//var texture_terrain = THREE.ImageUtils.loadTexture( "textures/texture.png" );
+			//var texture_terrain = THREE.ImageUtils.loadTexture( "textures/6.jpg" );
+			//var texture_terrain = THREE.ImageUtils.loadTexture( "textures/grad2.png" );
+			//var texture_terrain = THREE.ImageUtils.loadTexture( "textures/grad3.png" );
+			//var texture_terrain = THREE.ImageUtils.loadTexture( "textures/grad.png" );
+			var texture_terrain = THREE.ImageUtils.loadTexture( "textures/maze.png" );
 		
 			
 			var mat_terrain = 
@@ -87,9 +102,10 @@
 				{
 					color: 0xFFFFFF,
 					transparent: true,
-					opacity: .8,
+					opacity: .6,
 					//wireframe: true
 					map: texture_terrain
+					
 				});
 
 			mat_terrain.vertexColors = THREE.FaceColors;
@@ -100,7 +116,7 @@
 			scene.add( terrain_mesh );
 
 			var geometry = new THREE.SphereGeometry( 1, 32, 32 );
-			var mat_player = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
+			var mat_player = new THREE.MeshLambertMaterial( {color: 0x00ff00, transparent: true, opacity:.9, map: texture_terrain} );
 
 
 			var player_sphere = new THREE.Mesh( geometry, mat_player);
@@ -113,16 +129,10 @@
 			var light = new THREE.AmbientLight( 0xffffff ); // soft white light scene.add( light );
 				scene.add( light );
 			
-			var dir_light = new THREE.DirectionalLight( 0xffffff, 10 );
+			var dir_light = new THREE.DirectionalLight( 0xffffff, .5);
 				dir_light.position.set( 0, 0, 30 );
 				//scene.add( dir_light );
-				
-			var dir_light = new THREE.DirectionalLight( 0xffffff, 10 );
-				dir_light.position.set( 0, 0, -30 );
-				//scene.add( dir_light );
-					
-
-			
+						
 			var world = new World();
 
 			// Keeps track of Keyboard input.
@@ -147,13 +157,30 @@
 			var text2 = document.createElement('div');
 			text2.style.position = 'absolute';
 			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-			text2.style.width = window.innerWidth/4;
+			text2.style.width = window.innerWidth;
 			text2.style.height = 40;
-			text2.style.backgroundColor = "white";
+			text2.style.backgroundColor = "clear";//"white";
+			text2.style.color="#FFFFFF";
+			text2.style.textAlign="center";
 			text2.innerHTML = "";
-			text2.style.top = window.innerHeight - 40  + 'px';
+			text2.style.fontSize="72px";
+			text2.style.top = 0;//window.innerHeight - 40  + 'px';
 			text2.style.left = 0 + 'px';
 			document.body.appendChild(text2);
+			
+			var text3 = document.createElement('div');
+			text3.style.position = 'absolute';
+			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+			text3.style.width = 200;
+			text3.style.height = 40;
+			text3.style.backgroundColor = "clear";//"white";
+			text3.style.color="#FFFFFF";
+			text3.style.textAlign="center";
+			text3.innerHTML = "'q' & 'e'";
+			text3.style.fontSize="30px";
+			text3.style.top = 40;//window.innerHeight - 40  + 'px';
+			text3.style.left = 0 + 'px';
+			document.body.appendChild(text3);
 			
 			
 			var render = function () {
@@ -189,39 +216,47 @@
 				
 				if(use_tangent_camera){
 				
-				// Compute the x and y direction vectors that span the space of the tangent plane.
-				var x_dir = world.position(player_x + .01, player_y);
-				x_dir = x_dir.sub(pos);
-				x_dir.normalize();
+					// Compute the x and y direction vectors that span the space of the tangent plane.
+					var x_dir = world.position(player_x + .01, player_y);
+					x_dir = x_dir.sub(pos);
+					x_dir.normalize();
 
-				var y_dir = world.position(player_x, player_y + .01);
-				y_dir = y_dir.sub(pos);
-				y_dir.normalize();
-								
-				// Add the tangent vector to the player sphere.
-				//player_sphere.position = player_sphere.position.add(vec);
-				
-				// Compute the angled camera offset in the tangent plane to the surface.
-				var world_dir = world.forward_direction();
-				var dx = x_dir.x*world_dir.x + y_dir.x*world_dir.y;
-				var dy = x_dir.y*world_dir.x + y_dir.y*world_dir.y;
-				var dz = x_dir.z*world_dir.x + y_dir.z*world_dir.y;
-				
-				var tangent  = world.tangent (player_x, player_y);
-				var target_x = player_sphere.position.x + tangent.x*14 - 15*dx;// - world_dir.x;
-				var target_y = player_sphere.position.y + tangent.y*14 - 15*dy;// - world_dir.y;
-				var target_z = player_sphere.position.z + tangent.z*14 - 15*dz;
-				
-				camera.up.x = (camera.up.x*camera_looseness + tangent.x) / (camera_looseness + 1);
-				camera.up.y = (camera.up.y*camera_looseness + tangent.y) / (camera_looseness + 1);
-				camera.up.z = (camera.up.z*camera_looseness + tangent.z) / (camera_looseness + 1);
+					var y_dir = world.position(player_x, player_y + .01);
+					y_dir = y_dir.sub(pos);
+					y_dir.normalize();
+									
+					// Add the tangent vector to the player sphere.
+					//player_sphere.position = player_sphere.position.add(vec);
+					
+					// Compute the angled camera offset in the tangent plane to the surface.
+					var world_dir = world.forward_direction();
+					var dx = x_dir.x*world_dir.x + y_dir.x*world_dir.y;
+					var dy = x_dir.y*world_dir.x + y_dir.y*world_dir.y;
+					var dz = x_dir.z*world_dir.x + y_dir.z*world_dir.y;
+					
+					var tangent  = world.tangent (player_x, player_y);
+					
+					if(tangent.dot(camera.up) < 0)
+					{
+						//tangent = -tangent;
+					}
+					
+					var target_x = player_sphere.position.x + tangent.x*14 - 15*dx;// - world_dir.x;
+					var target_y = player_sphere.position.y + tangent.y*14 - 15*dy;// - world_dir.y;
+					var target_z = player_sphere.position.z + tangent.z*14 - 15*dz;
+					
+					camera.up.x = (camera.up.x*camera_looseness + tangent.x) / (camera_looseness + 1);
+					camera.up.y = (camera.up.y*camera_looseness + tangent.y) / (camera_looseness + 1);
+					camera.up.z = (camera.up.z*camera_looseness + tangent.z) / (camera_looseness + 1);
 							
+							
+					
 				}
 				else // Normal z up camera.
 				{
 					var world_dir = world.forward_direction();
-					var target_x = player_sphere.position.x - world_dir.x*5;
-					var target_y = player_sphere.position.y - world_dir.y*5;
+					var target_x = player_x - world_dir.x*5;
+					var target_y = player_y - world_dir.y*5;
 					var target_z = camera.position.z;
 					
 					camera.up.set( 0, 0, 1);
@@ -232,10 +267,18 @@
 				camera_y = (target_y + camera_looseness*camera_y) / (camera_looseness + 1);
 				camera_z = (target_z + camera_looseness*camera_z) / (camera_looseness + 1);
 
-
-				camera.position.x = camera_x;
-				camera.position.y = camera_y;
-				camera.position.z = camera_z;
+				if(!use_tangent_camera)
+				{
+					camera.position.x = camera_x - player_x;
+					camera.position.y = camera_y - player_y;
+					camera.position.z = camera_z;
+				}
+				else
+				{
+					camera.position.x = camera_x;
+					camera.position.y = camera_y;
+					camera.position.z = camera_z;
+				}
 
 				look_x = (player_sphere.position.x + camera_looseness*look_x) / (camera_looseness + 1);
 				look_y = (player_sphere.position.y + camera_looseness*look_y) / (camera_looseness + 1);
