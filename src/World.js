@@ -20,6 +20,8 @@
 	this.MORPH = 5;
 	this.SPHERE = 6;
 	this.KLEIN_BOTTLE = 7;
+
+	this.scene_num = 8;
 	
 	this.state = this.CURIOSITY;
 	this.state = this.ZONE_PLATE;
@@ -34,7 +36,6 @@
 	
 	// The Angle of current movement.
 	this.theta = 0;
-	
 	
  }
  
@@ -249,13 +250,15 @@ World.prototype =
 		
 		if (keyboard.down("Q"))
 		{
-			this.state--;
+			this.state = (this.state + this.scene_num - 1)%this.scene_num;
+						
 			this.reset_scene();
 		}
 		
 		if(keyboard.down("E"))
 		{
-			this.state++;
+			this.state = (this.state + 1) % this.scene_num;
+					
 			this.reset_scene();
 		}
 		
@@ -267,7 +270,7 @@ World.prototype =
 			mat_terrain.color = new THREE.Color( 0xf000f0 );
 			
 			text2.innerHTML = "Stress";
-			this.moveScale = 1.0;
+			this.moveScale = .01;
 			camera_looseness = 9;
 			camera.position.z = 20;
 			use_tangent_camera = false;
@@ -327,12 +330,12 @@ World.prototype =
 		if(this.state == this.MORPH)
 		{
 			mat_player.color  = new THREE.Color( 0xFFFF00 );
-			mat_terrain.color = new THREE.Color( 0x0F0FF0 );
+			mat_terrain.color = new THREE.Color( 0x3F3FFF );
 			//mat_terrain.color = new THREE.Color( 0xFFFFFF );
 			
 			text2.innerHTML = "MORPH";
 			this.moveScale = .2;
-			camera_looseness = 30;
+			camera_looseness = 15;
 			camera.position.z = 20;
 			
 			use_tangent_camera = false;
@@ -364,6 +367,9 @@ World.prototype =
 			use_tangent_camera = true;
 			
 			mat_terrain.side = THREE.DoubleSide;
+			
+			mat_player.color  = new THREE.Color( 0xFFFFFF );
+			mat_terrain.color = new THREE.Color( 0xFFFFFF );
 		}
 
 

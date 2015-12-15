@@ -102,7 +102,7 @@
 				{
 					color: 0xFFFFFF,
 					transparent: true,
-					opacity: .6,
+					opacity: .7,
 					//wireframe: true
 					map: texture_terrain
 					
@@ -126,12 +126,16 @@
 			
 			// -- Lights
 
-			var light = new THREE.AmbientLight( 0xffffff ); // soft white light scene.add( light );
+			var light = new THREE.AmbientLight( 0x5f5f5f ); // soft white light scene.add( light );
 				scene.add( light );
 			
-			var dir_light = new THREE.DirectionalLight( 0xffffff, .5);
+			var dir_light = new THREE.DirectionalLight( 0xffffff, .8);
 				dir_light.position.set( 0, 0, 30 );
-				//scene.add( dir_light );
+				scene.add( dir_light );
+				
+			var dir_light = new THREE.DirectionalLight( 0xffffff, .3);
+				dir_light.position.set( 0, 0, -30 );
+				scene.add( dir_light );
 						
 			var world = new World();
 
@@ -247,9 +251,7 @@
 					
 					camera.up.x = (camera.up.x*camera_looseness + tangent.x) / (camera_looseness + 1);
 					camera.up.y = (camera.up.y*camera_looseness + tangent.y) / (camera_looseness + 1);
-					camera.up.z = (camera.up.z*camera_looseness + tangent.z) / (camera_looseness + 1);
-							
-							
+					camera.up.z = (camera.up.z*camera_looseness + tangent.z) / (camera_looseness + 1);							
 					
 				}
 				else // Normal z up camera.
@@ -271,7 +273,7 @@
 				{
 					camera.position.x = camera_x - player_x;
 					camera.position.y = camera_y - player_y;
-					camera.position.z = camera_z;
+					//camera.position.z = camera_z;
 				}
 				else
 				{
@@ -285,7 +287,7 @@
 				look_z = (player_sphere.position.z + camera_looseness*look_z) / (camera_looseness + 1);
 				
 				
-				camera.lookAt(new THREE.Vector3(player_sphere.position.x, player_sphere.position.y, player_sphere.position.z));
+				camera.lookAt(new THREE.Vector3(look_x, look_y, look_z));
 
 
 				//player_sphere
