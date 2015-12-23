@@ -9,6 +9,7 @@
  {
 	this.time = 0;
 	this.state = 0;
+	this.text_fade_time = 0;
 	
 	this.moveScale = 1;
 	
@@ -103,6 +104,8 @@ World.prototype =
 		
 		if(this.state == this.MORPH)
 		{
+			x *= .1;
+			y *= .1;
 			return Math.sin(Math.radians(player_x*20 + player_y*5) * Math.sin(Math.radians(y*10))*Math.cos(Math.radians(x*3)));
 		}
 		
@@ -248,18 +251,24 @@ World.prototype =
 			player_y += this.moveScale*dir.y;
 		}
 		
-		if (keyboard.down("Q"))
+		/*
+		if (keyboard.down(" "))// 'q'
 		{
 			this.state = (this.state + this.scene_num - 1)%this.scene_num;
 						
 			this.reset_scene();
 		}
+		*/
 		
-		if(keyboard.down("E"))
+		if(keyboard.down("space"))// 'e'
 		{
 			this.state = (this.state + 1) % this.scene_num;
 					
 			this.reset_scene();
+			
+			// Clear the instructions,
+			// when the user has demonstrated that they know how to switch scenes.
+			text3.innerHTML = "";
 		}
 		
 		
@@ -346,7 +355,7 @@ World.prototype =
 			mat_player.color  = new THREE.Color( 0xFFFF00 );
 			mat_terrain.color = new THREE.Color( 0xFFFFFF );
 						
-			text2.innerHTML = "Spherical";
+			text2.innerHTML = "Sinous inflection";
 			this.moveScale = .2;
 			camera_looseness = 30;
 			//camera.position.z = 20;
@@ -373,6 +382,15 @@ World.prototype =
 		}
 
 
+		if(this.text_fade_time < 100)
+		{
+			this.text_fade_time++;
+		}
+		else // If the fade time has elapsed, then we clear the text from being drawn to the screen.
+		{
+			text2.innerHTML = "";
+		}
+		
 		/*
 		if ( keyboard.pressed("D") )
 			mesh.translateX(  moveDistance );
@@ -398,5 +416,8 @@ World.prototype =
 		player_y = radius*Math.sin(angle);
 		
 		console.log("help!");
+		
+		// Variables for enabling the HUD text when the user has switched scenes.
+		this.text_fade_time = 0;
 	}
 }

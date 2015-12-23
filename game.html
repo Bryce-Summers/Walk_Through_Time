@@ -1,10 +1,14 @@
 <html>
 	<head>
-		<title>My first Three.js app</title>
+		<!-- Use a Google font. -->
+		<link href='https://fonts.googleapis.com/css?family=Play' rel='stylesheet' type='text/css'>
+	
+		<title>Manifold Walker</title>
 		<style>
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
 		</style>
+
 	</head>
 	<body>
 	
@@ -16,6 +20,34 @@
 		<script language="javascript" type="text/javascript" src="src/World.js"></script>
 		
 	
+		<!-- ---------------- Custom Shader Code ------------------------ -->
+		<!-- https://stemkoski.github.io/Three.js/Shader-Glow.html -->
+		<script id="vertexShader" type="x-shader/x-vertex">
+		uniform vec3 viewVector;
+		uniform float c;
+		uniform float p;
+		varying float intensity;
+		void main() 
+		{
+			vec3 vNormal = normalize( normalMatrix * normal );
+			vec3 vNormel = normalize( normalMatrix * viewVector );
+			intensity = pow( c - dot(vNormal, vNormel), p );
+			
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}
+		</script>
+
+		<!-- fragment shader a.k.a. pixel shader -->
+		<script id="fragmentShader" type="x-shader/x-vertex"> 
+		uniform vec3 glowColor;
+		varying float intensity;
+		void main() 
+		{
+			vec3 glow = glowColor * intensity;
+			gl_FragColor = vec4( glow, 1.0 );
+		}
+		</script>
+
 		<script>
 		
 			Math.degrees = function(rad)
@@ -34,7 +66,27 @@
 			camera.position.z = 10;//5;
 			camera.position.y = -7;
 			camera.lookAt(new THREE.Vector3(0, 5, 0));
+
+			// -- GLOW shader code.
 			
+			// create custom material from the shader code above
+			//   that is within specially labeled script tags
+			var glowMaterial = new THREE.ShaderMaterial( 
+			{
+				uniforms: 
+				{ 
+					"c":   { type: "f", value: 1.0 },
+					"p":   { type: "f", value: 1.6 },
+					glowColor: { type: "c", value: new THREE.Color(0x0000ff) },
+					viewVector: { type: "v3", value: camera.position }
+				},
+				vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+				fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+				side: THREE.FrontSide,//THREE.DoubleSide,
+				blending: THREE.AdditiveBlending,
+				transparent: true
+			});
+		
 			
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
@@ -116,7 +168,8 @@
 			scene.add( terrain_mesh );
 
 			var geometry = new THREE.SphereGeometry( 1, 32, 32 );
-			var mat_player = new THREE.MeshLambertMaterial( {color: 0x00ff00, transparent: true, opacity:.9, map: texture_terrain} );
+			var mat_player = glowMaterial;
+			// new THREE.MeshLambertMaterial( {color: 0x00ff00, transparent: true, opacity:.9, map: texture_terrain} );
 
 
 			var player_sphere = new THREE.Mesh( geometry, mat_player);
@@ -160,16 +213,19 @@
 			/* Displaying Text. */
 			var text2 = document.createElement('div');
 			text2.style.position = 'absolute';
-			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-			text2.style.width = window.innerWidth;
+			//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this.
+			text2.style.width  = window.innerWidth;
 			text2.style.height = 40;
 			text2.style.backgroundColor = "clear";//"white";
 			text2.style.color="#FFFFFF";
 			text2.style.textAlign="center";
+			//text2.style.verticalAlign="center";
 			text2.innerHTML = "";
 			text2.style.fontSize="72px";
-			text2.style.top = 0;//window.innerHeight - 40  + 'px';
+			text2.style.top = window.innerHeight/2; - 36;// - 40  + 'px';
 			text2.style.left = 0 + 'px';
+			text2.style.fontFamily="'Play', sans-serif";
+			
 			document.body.appendChild(text2);
 			
 			var text3 = document.createElement('div');
@@ -180,10 +236,11 @@
 			text3.style.backgroundColor = "clear";//"white";
 			text3.style.color="#FFFFFF";
 			text3.style.textAlign="center";
-			text3.innerHTML = "'q' & 'e'";
+			text3.innerHTML = "space + WASD";
 			text3.style.fontSize="30px";
 			text3.style.top = 40;//window.innerHeight - 40  + 'px';
 			text3.style.left = 0 + 'px';
+			text3.style.fontFamily="'Play', sans-serif";
 			document.body.appendChild(text3);
 			
 			
